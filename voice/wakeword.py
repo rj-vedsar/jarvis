@@ -6,15 +6,18 @@ class WakeWordEngine:
         self.enabled = False
         self.listening = False
         self._thread = None
+        self.model = None
         
     def initialize(self):
         try:
             import openwakeword
             from openwakeword.model import Model
-            self.model = Model(wakeword_models=["hey_jarvis"])
+            # Force ONNX runtime since tflite-runtime is unavailable on Windows Python 3.11
+            self.model = Model(wakeword_models=["hey_jarvis"], inference_framework="onnx")
             self.enabled = True
             return True
-        except ImportError:
+        except Exception as e:
+            print(f"WakeWord Init Error: {e}")
             self.enabled = False
             return False
             
