@@ -1,3 +1,4 @@
+import os
 import threading
 import queue
 
@@ -7,13 +8,20 @@ class WakeWordEngine:
         self.listening = False
         self._thread = None
         self.model = None
+        self.model_path = os.path.join(os.path.dirname(__file__), "..", "models", "hey_jarvis_v0.1.onnx")
         
     def initialize(self):
+        # We enforce a local model directory for the ONNX file
+        if not os.path.exists(self.model_path):
+            print("Wake-word model not installed. Please place hey_jarvis_v0.1.onnx in the models/ directory.")
+            self.enabled = False
+            return False
+
         try:
             import openwakeword
             from openwakeword.model import Model
-            # Force ONNX runtime since tflite-runtime is unavailable on Windows Python 3.11
-            self.model = Model(wakeword_models=["hey_jarvis"], inference_framework="onnx")
+            # Load explicitly from the local path
+            self.model = Model(wakeword_models=[self.model_path], inference_framework="onnx")
             self.enabled = True
             return True
         except Exception as e:
@@ -26,11 +34,10 @@ class WakeWordEngine:
         self.listening = True
         
         def _listen_loop():
-            # Mocking audio stream feed
+            # In a real app, PyAudio would feed frames here
+            import time
             while self.listening:
-                import time
-                time.sleep(1)
-                # In real scenario: prediction = self.model.predict(audio_frame)
+                time.sleep(0.1)
                 
         self._thread = threading.Thread(target=_listen_loop, daemon=True)
         self._thread.start()
