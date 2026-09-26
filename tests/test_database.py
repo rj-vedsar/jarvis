@@ -11,6 +11,11 @@ class TestDatabase(unittest.TestCase):
         db.db_path = ":memory:"
         db.create_tables()
 
+    def setUp(self):
+        db = Database()
+        db.execute("DELETE FROM conversation_history")
+        db.execute("DELETE FROM settings")
+
     def test_settings(self):
         repo = SettingsRepository()
         repo.set("theme", "dark")
